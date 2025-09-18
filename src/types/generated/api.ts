@@ -14,8 +14,8 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * Register
-         * @description Register a new user
+         * Register User
+         * @description Register a new user account. All new users are created with 'user' role by default.
          */
         post: operations["register_api_v1_auth_register_post"];
         delete?: never;
@@ -35,7 +35,7 @@ export interface paths {
         put?: never;
         /**
          * Login
-         * @description OAuth2 compatible token login, get an access token for future requests
+         * @description OAuth2 compatible token login. Returns an access token for use in authenticated API calls.
          */
         post: operations["login_api_v1_auth_login_post"];
         delete?: never;
@@ -52,8 +52,8 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Get Current User Info
-         * @description Get current user information
+         * Get Current User Profile
+         * @description Get information about the currently authenticated user.
          */
         get: operations["get_current_user_info_api_v1_auth_me_get"];
         put?: never;
@@ -72,14 +72,14 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Get Notes
-         * @description Get notes - if admin, get all notes, otherwise get only user's notes
+         * List Notes
+         * @description Get paginated list of notes. Admins can see all notes, regular users can only see their own.
          */
         get: operations["get_notes_api_v1_notes__get"];
         put?: never;
         /**
          * Create Note
-         * @description Create a new note for the current user
+         * @description Create a new note for the current authenticated user.
          */
         post: operations["create_note_api_v1_notes__post"];
         delete?: never;
@@ -97,20 +97,120 @@ export interface paths {
         };
         /**
          * Get Note
-         * @description Get a specific note by ID
+         * @description Get a specific note by ID. Users can only access their own notes unless they are admins.
          */
         get: operations["get_note_api_v1_notes__note_id__get"];
         /**
          * Update Note
-         * @description Update a note
+         * @description Update an existing note. Users can only update their own notes unless they are admins.
          */
         put: operations["update_note_api_v1_notes__note_id__put"];
         post?: never;
         /**
          * Delete Note
-         * @description Delete a note
+         * @description Delete a note. Users can only delete their own notes unless they are admins.
          */
         delete: operations["delete_note_api_v1_notes__note_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/notes/by-user/{user_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Notes by User (Admin Only)
+         * @description Get paginated list of notes for a specific user. Admin access only.
+         */
+        get: operations["get_notes_by_user_api_v1_notes_by_user__user_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/users/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Users
+         * @description Get a paginated list of all users with optional filtering by role and active status.
+         */
+        get: operations["get_users_api_v1_admin_users__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/users/{user_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get User Details
+         * @description Get detailed information about a specific user, including their notes.
+         */
+        get: operations["get_user_details_api_v1_admin_users__user_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/users/{user_id}/role": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Update User Role
+         * @description Update a user's role (admin/user). Only admins can promote other users to admin.
+         */
+        put: operations["update_user_role_api_v1_admin_users__user_id__role_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/users/{user_id}/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Update User Status
+         * @description Activate or deactivate a user account. Admin cannot deactivate their own account.
+         */
+        put: operations["update_user_status_api_v1_admin_users__user_id__status_put"];
+        post?: never;
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -205,21 +305,23 @@ export interface components {
         };
         /** NoteCreate */
         NoteCreate: {
-            /** Title */
+            /**
+             * Title
+             * @description Title of the note
+             */
             title: string;
-            /** Description */
+            /**
+             * Description
+             * @description Content of the note
+             */
             description?: string | null;
         };
-        /** NoteResponse */
-        NoteResponse: {
-            /** Title */
-            title: string;
-            /** Description */
-            description?: string | null;
+        /** NoteInfo */
+        NoteInfo: {
             /** Id */
             id: number;
-            /** Owner Id */
-            owner_id: number;
+            /** Title */
+            title: string;
             /**
              * Created At
              * Format: date-time
@@ -231,12 +333,93 @@ export interface components {
              */
             updated_at: string;
         };
+        /** NoteResponse */
+        NoteResponse: {
+            /**
+             * Title
+             * @description Title of the note
+             */
+            title: string;
+            /**
+             * Description
+             * @description Content of the note
+             */
+            description?: string | null;
+            /**
+             * Id
+             * @description Unique note identifier
+             */
+            id: number;
+            /**
+             * Owner Id
+             * @description ID of the user who owns this note
+             */
+            owner_id: number;
+            /**
+             * Created At
+             * Format: date-time
+             * @description When the note was created
+             */
+            created_at: string;
+            /**
+             * Updated At
+             * Format: date-time
+             * @description When the note was last updated
+             */
+            updated_at: string;
+        };
         /** NoteUpdate */
         NoteUpdate: {
             /** Title */
             title?: string | null;
-            /** Description */
+            /**
+             * Description
+             * @description Content of the note
+             */
             description?: string | null;
+        };
+        /** PaginatedResponse[NoteResponse] */
+        PaginatedResponse_NoteResponse_: {
+            /**
+             * Items
+             * @description List of items in the current page
+             */
+            items: components["schemas"]["NoteResponse"][];
+            /** @description Pagination metadata */
+            meta: components["schemas"]["PaginationMeta"];
+        };
+        /** PaginatedResponse[UserResponse] */
+        PaginatedResponse_UserResponse_: {
+            /**
+             * Items
+             * @description List of items in the current page
+             */
+            items: components["schemas"]["UserResponse"][];
+            /** @description Pagination metadata */
+            meta: components["schemas"]["PaginationMeta"];
+        };
+        /** PaginationMeta */
+        PaginationMeta: {
+            /**
+             * Total
+             * @description Total number of items
+             */
+            total: number;
+            /**
+             * Page
+             * @description Current page number
+             */
+            page: number;
+            /**
+             * Size
+             * @description Page size
+             */
+            size: number;
+            /**
+             * Pages
+             * @description Total number of pages
+             */
+            pages: number;
         };
         /** Token */
         Token: {
@@ -262,6 +445,37 @@ export interface components {
              */
             role: string;
         };
+        /** UserDetailResponse */
+        UserDetailResponse: {
+            /**
+             * Email
+             * Format: email
+             */
+            email: string;
+            /** Name */
+            name: string;
+            /** Id */
+            id: number;
+            /** Role */
+            role: string;
+            /** Is Active */
+            is_active: boolean;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+            /**
+             * Notes
+             * @default []
+             */
+            notes: components["schemas"]["NoteInfo"][];
+        };
         /** UserResponse */
         UserResponse: {
             /**
@@ -282,6 +496,22 @@ export interface components {
              * Format: date-time
              */
             created_at: string;
+        };
+        /** UserUpdateRole */
+        UserUpdateRole: {
+            /**
+             * Role
+             * @description User role - 'admin' or 'user'
+             */
+            role: string;
+        };
+        /** UserUpdateStatus */
+        UserUpdateStatus: {
+            /**
+             * Is Active
+             * @description User account status
+             */
+            is_active: boolean;
         };
         /** ValidationError */
         ValidationError: {
@@ -314,7 +544,7 @@ export interface operations {
             };
         };
         responses: {
-            /** @description Successful Response */
+            /** @description User registered successfully */
             201: {
                 headers: {
                     [name: string]: unknown;
@@ -323,14 +553,19 @@ export interface operations {
                     "application/json": components["schemas"]["UserResponse"];
                 };
             };
-            /** @description Validation Error */
+            /** @description Email already registered */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation error in input data */
             422: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
+                content?: never;
             };
         };
     };
@@ -347,7 +582,7 @@ export interface operations {
             };
         };
         responses: {
-            /** @description Successful Response */
+            /** @description Login successful, access token returned */
             200: {
                 headers: {
                     [name: string]: unknown;
@@ -356,14 +591,19 @@ export interface operations {
                     "application/json": components["schemas"]["Token"];
                 };
             };
-            /** @description Validation Error */
+            /** @description Invalid credentials */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation error in input data */
             422: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
+                content?: never;
             };
         };
     };
@@ -376,7 +616,7 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Successful Response */
+            /** @description User profile retrieved successfully */
             200: {
                 headers: {
                     [name: string]: unknown;
@@ -385,13 +625,22 @@ export interface operations {
                     "application/json": components["schemas"]["UserResponse"];
                 };
             };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
         };
     };
     get_notes_api_v1_notes__get: {
         parameters: {
             query?: {
-                skip?: number;
-                limit?: number;
+                /** @description Page number, starting from 1 */
+                page?: number;
+                /** @description Number of items per page (max 100) */
+                size?: number;
             };
             header?: never;
             path?: never;
@@ -399,14 +648,21 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Successful Response */
+            /** @description List of notes retrieved successfully */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["NoteResponse"][];
+                    "application/json": components["schemas"]["PaginatedResponse_NoteResponse_"];
                 };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Validation Error */
             422: {
@@ -432,7 +688,7 @@ export interface operations {
             };
         };
         responses: {
-            /** @description Successful Response */
+            /** @description Note created successfully */
             201: {
                 headers: {
                     [name: string]: unknown;
@@ -441,14 +697,19 @@ export interface operations {
                     "application/json": components["schemas"]["NoteResponse"];
                 };
             };
-            /** @description Validation Error */
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation error in input data */
             422: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
+                content?: never;
             };
         };
     };
@@ -457,13 +718,14 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                /** @description The ID of the note to retrieve */
                 note_id: number;
             };
             cookie?: never;
         };
         requestBody?: never;
         responses: {
-            /** @description Successful Response */
+            /** @description Note retrieved successfully */
             200: {
                 headers: {
                     [name: string]: unknown;
@@ -471,6 +733,27 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["NoteResponse"];
                 };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Permission denied - note belongs to another user */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Note not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Validation Error */
             422: {
@@ -488,6 +771,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                /** @description The ID of the note to update */
                 note_id: number;
             };
             cookie?: never;
@@ -498,13 +782,181 @@ export interface operations {
             };
         };
         responses: {
-            /** @description Successful Response */
+            /** @description Note updated successfully */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": components["schemas"]["NoteResponse"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Permission denied - note belongs to another user */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Note not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation error in input data */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    delete_note_api_v1_notes__note_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The ID of the note to delete */
+                note_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Note deleted successfully */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Permission denied - note belongs to another user */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Note not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_notes_by_user_api_v1_notes_by_user__user_id__get: {
+        parameters: {
+            query?: {
+                /** @description Page number, starting from 1 */
+                page?: number;
+                /** @description Number of items per page (max 100) */
+                size?: number;
+            };
+            header?: never;
+            path: {
+                /** @description The ID of the user whose notes to retrieve */
+                user_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description List of notes retrieved successfully */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaginatedResponse_NoteResponse_"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Permission denied - admin access required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description User not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_users_api_v1_admin_users__get: {
+        parameters: {
+            query?: {
+                /** @description Page number, starting from 1 */
+                page?: number;
+                /** @description Number of items per page (max 100) */
+                size?: number;
+                /** @description Filter by role (admin or user) */
+                role?: string | null;
+                /** @description Filter by active status (true/false) */
+                is_active?: boolean | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaginatedResponse_UserResponse_"];
                 };
             };
             /** @description Validation Error */
@@ -518,25 +970,154 @@ export interface operations {
             };
         };
     };
-    delete_note_api_v1_notes__note_id__delete: {
+    get_user_details_api_v1_admin_users__user_id__get: {
         parameters: {
             query?: never;
             header?: never;
             path: {
-                note_id: number;
+                /** @description The ID of the user to retrieve */
+                user_id: number;
             };
             cookie?: never;
         };
         requestBody?: never;
         responses: {
-            /** @description Successful Response */
+            /** @description User details retrieved successfully */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["UserDetailResponse"];
                 };
+            };
+            /** @description Not enough permissions, admin role required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description User not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_user_role_api_v1_admin_users__user_id__role_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The ID of the user to update */
+                user_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UserUpdateRole"];
+            };
+        };
+        responses: {
+            /** @description Role updated successfully */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserResponse"];
+                };
+            };
+            /** @description Invalid role or admin attempting to demote themselves */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not enough permissions, admin role required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description User not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_user_status_api_v1_admin_users__user_id__status_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The ID of the user to update */
+                user_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UserUpdateStatus"];
+            };
+        };
+        responses: {
+            /** @description Status updated successfully */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserResponse"];
+                };
+            };
+            /** @description Admin attempting to deactivate themselves */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not enough permissions, admin role required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description User not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Validation Error */
             422: {

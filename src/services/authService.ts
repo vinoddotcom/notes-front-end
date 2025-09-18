@@ -89,7 +89,7 @@ export const AuthService = {
         email: userData.email.trim(),
         name: userData.name.trim(),
         password: userData.password,
-        role: userData.role || 'user'
+        role: 'user' // Always set as user, admin role is assigned later
       };
       
       const response = await apiClient.register(registrationData);
@@ -181,18 +181,49 @@ export const AuthService = {
   // Get current user info
   async getCurrentUser(): Promise<UserResponse> {
     try {
+      // First check if we have cached user data
+      const cachedUserData = localStorage.getItem('user');
+      
+      if (cachedUserData) {
+        const userData = JSON.parse(cachedUserData) as UserResponse;
+        console.log('AuthService: Using cached user data');
+        return userData;
+      }
+      
+      // If no cached data, make the API call
+      console.log('AuthService: Fetching current user data from API');
       const userData = await apiClient.getCurrentUser();
       
-      // Cache user data
+      // Cache the user data
       localStorage.setItem('user', JSON.stringify(userData));
       
       return userData;
     } catch (error) {
+      console.error('AuthService: Error fetching current user:', error);
       if (axios.isAxiosError(error)) {
         const axiosError = error as AxiosError<{ detail?: string }>;
-        throw new Error(axiosError.response?.data?.detail || 'Failed to get user information');
+        if (axiosError.response?.status === 401) {
+          TokenManager.clearToken();
+          console.log('AuthService: Token cleared due to 401 response');
+          throw new Error('Session expired, please login again');
+        }
+        throw new Error(axiosError.response?.data?.detail || 'Failed to fetch user data');
       }
-      throw new Error('Failed to get user information');
+      throw new Error('Failed to fetch user data');
+    }
+  },
+  
+  // Get cached user data (without making an API call)
+  getCachedUser(): UserResponse | null {
+    try {
+      const cachedUserData = localStorage.getItem('user');
+      if (cachedUserData) {
+        return JSON.parse(cachedUserData) as UserResponse;
+      }
+      return null;
+    } catch (error) {
+      console.error('AuthService: Error getting cached user data:', error);
+      return null;
     }
   },
 
@@ -202,10 +233,10 @@ export const AuthService = {
   },
 
   // Get cached user data (without API call)
-  getCachedUser(): UserResponse | null {
-    const userData = localStorage.getItem('user');
-    return userData ? JSON.parse(userData) : null;
-  },
+  // getCachedUser(): UserResponse | null {
+  //   const userData = localStorage.getItem('user');
+  //   return userData ? JSON.parse(userData) : null;
+  // },
 
   // Logout user (client-side only)
   logout(): void {

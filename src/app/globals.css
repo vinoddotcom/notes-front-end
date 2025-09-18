@@ -47,6 +47,13 @@ body {
   border: 1px solid hsl(var(--b3));
 }
 
+/* Masonry grid styling */
+.masonry-grid {
+  display: grid;
+  grid-auto-rows: minmax(100px, auto);
+  grid-gap: 1rem;
+}
+
 /* Custom button styling */
 .btn-primary {
   box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);

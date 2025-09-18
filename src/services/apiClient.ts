@@ -1,5 +1,5 @@
 import axios, { AxiosInstance, AxiosRequestConfig } from 'axios';
-import { components } from '@/types/generated/api';
+import { components, operations } from '@/types/generated/api';
 
 // Define types from generated schema
 export type UserCreate = components['schemas']['UserCreate'];
@@ -9,6 +9,11 @@ export type LoginRequest = components['schemas']['Body_login_api_v1_auth_login_p
 export type NoteCreate = components['schemas']['NoteCreate'];
 export type NoteUpdate = components['schemas']['NoteUpdate'];
 export type NoteResponse = components['schemas']['NoteResponse'];
+export type PaginatedNoteResponse = operations["get_notes_api_v1_notes__get"]["responses"]["200"]["content"]["application/json"];
+export type PaginatedUserResponse = operations["get_users_api_v1_admin_users__get"]["responses"]["200"]["content"]["application/json"];
+
+export type UserUpdateRole = components['schemas']['UserUpdateRole'];
+export type UserUpdateStatus = components['schemas']['UserUpdateStatus'];
 
 const API_URL = 'https://api-notes.vinod.digital';
 
@@ -125,7 +130,8 @@ class ApiClient {
   // Note methods
   async getNotes(skip = 0, limit = 100): Promise<NoteResponse[]> {
     const response = await this.axiosInstance.get(`/api/v1/notes/?skip=${skip}&limit=${limit}`);
-    return response.data;
+    // Extract the items array from the paginated response
+    return response.data.items;
   }
 
   async getNoteById(noteId: number): Promise<NoteResponse> {
@@ -145,6 +151,51 @@ class ApiClient {
 
   async deleteNote(noteId: number): Promise<void> {
     await this.axiosInstance.delete(`/api/v1/notes/${noteId}`);
+  }
+  
+  // Get notes by user ID (for admin to view a specific user's notes)
+  async getNotesByUserId(userId: number, skip = 0, limit = 100, search?: string): Promise<PaginatedNoteResponse> {
+    let url = `/api/v1/notes/by-user/${userId}?skip=${skip}&limit=${limit}`;
+    
+    if (search) {
+      url += `&search=${encodeURIComponent(search)}`;
+    }
+    
+    const response = await this.axiosInstance.get(url);
+    return response.data;
+  }
+
+  // Admin methods
+  async getUsers(page = 1, size = 10, role?: string, isActive?: boolean): Promise<PaginatedUserResponse> {
+    let url = `/api/v1/admin/users/?page=${page}&size=${size}`;
+    
+    if (role) {
+      url += `&role=${role}`;
+    }
+    
+    if (isActive !== undefined) {
+      url += `&is_active=${isActive}`;
+    }
+    
+    const response = await this.axiosInstance.get(url);
+    return response.data;
+  }
+  
+  async getUserDetails(userId: number): Promise<UserResponse> {
+    const response = await this.axiosInstance.get(`/api/v1/admin/users/${userId}`);
+    return response.data;
+  }
+  
+  async updateUserRole(userId: number, role: string): Promise<UserResponse> {
+    const roleData: UserUpdateRole = { role };
+    const response = await this.axiosInstance.put(`/api/v1/admin/users/${userId}/role`, roleData);
+    return response.data;
+  }
+  
+  async updateUserStatus(userId: number, isActive: boolean): Promise<UserResponse> {
+    const statusData: UserUpdateStatus = { is_active: isActive };
+    const response = await this.axiosInstance.put(`/api/v1/admin/users/${userId}/status`, statusData);
+    return response.data;
   }
 }
 

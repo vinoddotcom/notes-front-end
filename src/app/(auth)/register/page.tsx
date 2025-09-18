@@ -13,7 +13,7 @@ export default function RegisterPage() {
     email: '',
     name: '',
     password: '',
-    role: 'user' // Default role
+    role: 'user' // Role will be set by admin later, default is 'user' on the server
   });
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -51,11 +51,11 @@ export default function RegisterPage() {
       const result = await AuthService.register(formData);
       console.log('Register: Registration successful:', result);
       
-      // Show success message before redirect
-      alert('Registration successful! Please log in with your credentials.');
+      // Log the success
+      console.log('Register: Registration successful, redirecting to login');
       
-      // Add more logging for redirect
-      console.log('Register: Redirecting to login page...');
+      // Store success message in session storage for display after redirect
+      sessionStorage.setItem('registrationSuccess', 'Registration successful! Please log in with your credentials.');
       
       // Force a hard navigation to the login page
       window.location.href = '/login';
@@ -81,6 +81,15 @@ export default function RegisterPage() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
                 <span>{error}</span>
+                <button 
+                  onClick={() => setError('')}
+                  className="btn btn-sm btn-ghost ml-auto"
+                  aria-label="Close error message"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                  </svg>
+                </button>
               </div>
             )}
             
@@ -138,22 +147,12 @@ export default function RegisterPage() {
               </div>
 
               <div className="form-control w-full">
-                <label className="label">
-                  <span className="label-text">Role</span>
-                </label>
-                <select
-                  id="role"
-                  name="role"
-                  value={formData.role}
-                  onChange={handleChange}
-                  className="select select-bordered w-full bg-base-200"
-                >
-                  <option value="user">User</option>
-                  <option value="admin">Admin</option>
-                </select>
-                <label className="label">
-                  <span className="label-text-alt">Admin can manage all notes, User can manage only their notes</span>
-                </label>
+                <div className="alert alert-info mb-2">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" className="stroke-current shrink-0 w-6 h-6">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                  </svg>
+                  <span>You will be registered as a regular user. Admin roles are assigned by administrators.</span>
+                </div>
               </div>
 
               <div className="form-control mt-6">

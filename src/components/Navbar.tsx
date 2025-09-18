@@ -49,16 +49,41 @@ export default function Navbar() {
   };
 
   const themes = [
-    { id: 'light', name: 'Light' },
-    { id: 'dark', name: 'Dark' },
-    { id: 'cupcake', name: 'Cupcake' },
-    { id: 'bumblebee', name: 'Bumblebee' },
-    { id: 'emerald', name: 'Emerald' },
-    { id: 'corporate', name: 'Corporate' },
-    { id: 'synthwave', name: 'Synthwave' },
-    { id: 'retro', name: 'Retro' },
-    { id: 'cyberpunk', name: 'Cyberpunk' },
-    { id: 'night', name: 'Night' }
+    // Light themes
+    { id: 'light', name: 'Light', category: 'Light' },
+    { id: 'cupcake', name: 'Cupcake', category: 'Light' },
+    { id: 'bumblebee', name: 'Bumblebee', category: 'Light' },
+    { id: 'emerald', name: 'Emerald', category: 'Light' },
+    { id: 'corporate', name: 'Corporate', category: 'Light' },
+    { id: 'garden', name: 'Garden', category: 'Light' },
+    { id: 'aqua', name: 'Aqua', category: 'Light' },
+    { id: 'pastel', name: 'Pastel', category: 'Light' },
+    { id: 'fantasy', name: 'Fantasy', category: 'Light' },
+    { id: 'wireframe', name: 'Wireframe', category: 'Light' },
+    { id: 'cmyk', name: 'CMYK', category: 'Light' },
+    { id: 'autumn', name: 'Autumn', category: 'Light' },
+    { id: 'business', name: 'Business', category: 'Light' },
+    { id: 'acid', name: 'Acid', category: 'Light' },
+    { id: 'lemonade', name: 'Lemonade', category: 'Light' },
+    { id: 'winter', name: 'Winter', category: 'Light' },
+    
+    // Dark themes
+    { id: 'dark', name: 'Dark', category: 'Dark' },
+    { id: 'synthwave', name: 'Synthwave', category: 'Dark' },
+    { id: 'retro', name: 'Retro', category: 'Dark' },
+    { id: 'cyberpunk', name: 'Cyberpunk', category: 'Dark' },
+    { id: 'valentine', name: 'Valentine', category: 'Dark' },
+    { id: 'halloween', name: 'Halloween', category: 'Dark' },
+    { id: 'forest', name: 'Forest', category: 'Dark' },
+    { id: 'lofi', name: 'Lo-Fi', category: 'Dark' },
+    { id: 'black', name: 'Black', category: 'Dark' },
+    { id: 'luxury', name: 'Luxury', category: 'Dark' },
+    { id: 'dracula', name: 'Dracula', category: 'Dark' },
+    { id: 'night', name: 'Night', category: 'Dark' },
+    { id: 'coffee', name: 'Coffee', category: 'Dark' },
+    { id: 'dim', name: 'Dim', category: 'Dark' },
+    { id: 'nord', name: 'Nord', category: 'Dark' },
+    { id: 'sunset', name: 'Sunset', category: 'Dark' }
   ];
 
   return (
@@ -71,7 +96,14 @@ export default function Navbar() {
             </svg>
           </div>
           <ul tabIndex={0} className="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow bg-base-100 rounded-box w-52">
-            {user && <li><Link href="/dashboard">Dashboard</Link></li>}
+            {user && (
+              <>
+                <li><Link href="/dashboard">Dashboard</Link></li>
+                {user.role === 'admin' && (
+                  <li><Link href="/admin/users">User Management</Link></li>
+                )}
+              </>
+            )}
           </ul>
         </div>
         <Link href={user ? '/dashboard' : '/'} className="btn btn-ghost normal-case text-xl">Notes App</Link>
@@ -79,7 +111,14 @@ export default function Navbar() {
       
       <div className="navbar-center hidden lg:flex">
         <ul className="menu menu-horizontal px-1">
-          {user && <li><Link href="/dashboard">Dashboard</Link></li>}
+          {user && (
+            <>
+              <li><Link href="/dashboard">Dashboard</Link></li>
+              {user.role === 'admin' && (
+                <li><Link href="/admin/users">User Management</Link></li>
+              )}
+            </>
+          )}
         </ul>
       </div>
       
@@ -90,14 +129,32 @@ export default function Navbar() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
             </svg>
           </div>
-          <ul tabIndex={0} className="dropdown-content menu p-3 shadow bg-base-100 rounded-box w-52 mt-4 z-[1] max-h-96 overflow-y-auto">
-            {themes.map(t => (
+          <ul tabIndex={0} className="dropdown-content menu p-3 shadow bg-base-100 rounded-box w-64 mt-4 z-[1] max-h-96 overflow-y-auto">
+            <li className="menu-title">Light Themes</li>
+            {themes.filter(t => t.category === 'Light').map(t => (
               <li key={t.id}>
                 <button 
                   className={`${theme === t.id ? 'active' : ''} w-full text-left`} 
                   onClick={() => handleThemeChange(t.id)}
                 >
-                  {t.name}
+                  <span className="flex items-center gap-2">
+                    <span className="w-4 h-4 rounded-full border border-base-300 bg-base-100"></span>
+                    {t.name}
+                  </span>
+                </button>
+              </li>
+            ))}
+            <li className="menu-title mt-2">Dark Themes</li>
+            {themes.filter(t => t.category === 'Dark').map(t => (
+              <li key={t.id}>
+                <button 
+                  className={`${theme === t.id ? 'active' : ''} w-full text-left`} 
+                  onClick={() => handleThemeChange(t.id)}
+                >
+                  <span className="flex items-center gap-2">
+                    <span className="w-4 h-4 rounded-full border border-base-300 bg-base-100"></span>
+                    {t.name}
+                  </span>
                 </button>
               </li>
             ))}

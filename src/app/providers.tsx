@@ -4,16 +4,14 @@ import { useEffect, useState } from 'react';
 
 // List of all available themes from daisyUI
 const VALID_THEMES = [
-  "light", 
-  "dark", 
-  "cupcake",
-  "bumblebee",
-  "emerald",
-  "corporate",
-  "synthwave",
-  "retro",
-  "cyberpunk",
-  "night"
+  // Light themes
+  "light", "cupcake", "bumblebee", "emerald", "corporate", "garden", "aqua", 
+  "pastel", "fantasy", "wireframe", "cmyk", "autumn", "business", "acid", 
+  "lemonade", "winter",
+  // Dark themes
+  "dark", "synthwave", "retro", "cyberpunk", "valentine", "halloween", 
+  "forest", "lofi", "black", "luxury", "dracula", "night", "coffee", 
+  "dim", "nord", "sunset"
 ];
 
 export function Providers({ children }: { children: React.ReactNode }) {

@@ -1,0 +1,93 @@
+/* theme-fixer.css */
+/* This file is used to fix theme inconsistencies and ensure smooth theme transitions */
+
+/* Ensure theme transitions are smooth */
+html, html * {
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+/* Fix for flashing background during theme changes */
+html {
+  background-color: hsl(var(--b1));
+}
+
+/* Make sure the theme styles are applied immediately */
+html[data-theme] {
+  color-scheme: light dark;
+}
+
+/* Base theme transition for all themes */
+html[data-theme] {
+  transition: 
+    background-color 0.3s ease-in-out,
+    color 0.3s ease-in-out,
+    border-color 0.3s ease-in-out;
+}
+
+/* Hide content until theme is initialized to prevent flash of unstyled content */
+html:not(.theme-initialized) {
+  visibility: hidden;
+}
+
+/* Dark theme specific fixes */
+html[data-theme="dark"],
+html[data-theme="synthwave"],
+html[data-theme="retro"],
+html[data-theme="cyberpunk"],
+html[data-theme="valentine"],
+html[data-theme="halloween"],
+html[data-theme="forest"],
+html[data-theme="lofi"],
+html[data-theme="black"],
+html[data-theme="luxury"],
+html[data-theme="dracula"],
+html[data-theme="night"],
+html[data-theme="coffee"],
+html[data-theme="dim"],
+html[data-theme="nord"],
+html[data-theme="sunset"] {
+  color-scheme: dark;
+}
+
+/* Light theme specific fixes */
+html[data-theme="light"],
+html[data-theme="cupcake"],
+html[data-theme="bumblebee"],
+html[data-theme="emerald"],
+html[data-theme="corporate"],
+html[data-theme="garden"],
+html[data-theme="aqua"],
+html[data-theme="pastel"],
+html[data-theme="fantasy"],
+html[data-theme="wireframe"],
+html[data-theme="cmyk"],
+html[data-theme="autumn"],
+html[data-theme="business"],
+html[data-theme="acid"],
+html[data-theme="lemonade"],
+html[data-theme="winter"] {
+  color-scheme: light;
+}
+
+/* Fix for elements that might not inherit theme colors properly */
+.theme-test {
+  background-color: hsl(var(--p));
+  color: hsl(var(--pc));
+  padding: 0.5rem;
+  border-radius: 0.25rem;
+}
+
+/* Fix for possible flash of unstyled content */
+.theme-transition-ready {
+  opacity: 1 !important;
+}
+
+/* Theme initialization state - elements might be hidden until theme is ready */
+.theme-initializing {
+  opacity: 0;
+}
+
+/* Fix for SVG elements to properly inherit theme colors */
+svg.theme-aware {
+  fill: currentColor;
+}

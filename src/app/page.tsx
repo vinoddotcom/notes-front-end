@@ -3,51 +3,27 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { AuthService } from '@/services/authService';
-import Navbar from '@/components/Navbar';
-import TestComponent from '@/components/TestComponent';
 
 export default function HomePage() {
   const router = useRouter();
   
   useEffect(() => {
-    // Check if user is logged in and redirect accordingly
-    if (typeof window !== 'undefined' && AuthService.isAuthenticated()) {
-      router.push('/dashboard');
+    // Always redirect - if authenticated, go to dashboard, otherwise to login page
+    if (typeof window !== 'undefined') {
+      if (AuthService.isAuthenticated()) {
+        router.push('/dashboard');
+      } else {
+        router.push('/login');
+      }
     }
   }, [router]);
 
   return (
-    <>
-      <Navbar />
-      <div className="hero min-h-[calc(100vh-64px)]">
-        <div className="hero-content text-center">
-          <div className="max-w-md">
-            <h1 className="text-5xl font-bold text-primary">Notes Application</h1>
-            <p className="py-6">
-              A simple and elegant application to manage your notes. Sign in to create, edit, and organize your notes in one place.
-            </p>
-            <div className="flex justify-center space-x-4">
-              <button 
-                onClick={() => router.push('/login')} 
-                className="btn btn-primary"
-              >
-                Login
-              </button>
-              <button 
-                onClick={() => router.push('/register')} 
-                className="btn btn-outline"
-              >
-                Register
-              </button>
-            </div>
-            
-            {/* Test component to verify styling */}
-            <div className="mt-8">
-              <TestComponent />
-            </div>
-          </div>
-        </div>
+    <div className="min-h-screen flex items-center justify-center">
+      <div className="text-center">
+        <span className="loading loading-spinner loading-lg"></span>
+        <p className="mt-4">Redirecting to app...</p>
       </div>
-    </>
+    </div>
   );
 }
