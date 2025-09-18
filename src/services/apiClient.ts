@@ -152,15 +152,15 @@ class ApiClient {
   async deleteNote(noteId: number): Promise<void> {
     await this.axiosInstance.delete(`/api/v1/notes/${noteId}`);
   }
-  
+
   // Get notes by user ID (for admin to view a specific user's notes)
   async getNotesByUserId(userId: number, skip = 0, limit = 100, search?: string): Promise<PaginatedNoteResponse> {
     let url = `/api/v1/notes/by-user/${userId}?skip=${skip}&limit=${limit}`;
-    
+
     if (search) {
       url += `&search=${encodeURIComponent(search)}`;
     }
-    
+
     const response = await this.axiosInstance.get(url);
     return response.data;
   }

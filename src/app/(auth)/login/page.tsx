@@ -32,6 +32,19 @@ export default function LoginPage() {
       }
     }
   }, []);
+  
+  // Error message auto-clearing with timeout
+  useEffect(() => {
+    if (error) {
+      // Auto-clear error after 5 seconds (5000ms)
+      const timer = setTimeout(() => {
+        setError('');
+      }, 5000);
+      
+      // Clear the timer if the component unmounts or error changes
+      return () => clearTimeout(timer);
+    }
+  }, [error]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -43,7 +56,7 @@ export default function LoginPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
+    // Don't clear error immediately - let it persist until we get a response
     setIsLoading(true);
 
     // Basic validation

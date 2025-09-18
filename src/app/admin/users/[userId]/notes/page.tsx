@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { NoteResponse, UserResponse } from '@/services/apiClient';
 import { NoteService } from '@/services/noteService';
@@ -11,17 +11,18 @@ import NoteCard from '@/components/NoteCard';
 import Link from 'next/link';
 
 interface UserNotesPageProps {
-  params: {
+  params: Promise< {
     userId: string;
-  };
+  }>;
 }
 
 export default function UserNotesPage({ params }: UserNotesPageProps) {
   const router = useRouter();
-  const userId = parseInt(params.userId, 10);
+  // Unwrap params using React.use() as required by Next.js 15+
+  const { userId: userIdParam } = React.use(params);
+  const userId = parseInt(userIdParam, 10);
   
   const [user, setUser] = useState<UserResponse | null>(null);
-  const [notes, setNotes] = useState<NoteResponse[]>([]);
   const [filteredNotes, setFilteredNotes] = useState<NoteResponse[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
@@ -43,13 +44,11 @@ export default function UserNotesPage({ params }: UserNotesPageProps) {
         const userDetails = await AdminService.getUserDetails(userId);
         setUser(userDetails);
         
-        // Fetch all notes as admin
-        const allNotes = await NoteService.getNotes();
+        // Fetch notes by user ID directly using the by-user endpoint
+        const notesResult = await NoteService.getNotesByUserId(userId);
         
-        // Filter notes that belong to this user
-        const userNotes = allNotes.filter(note => note.owner_id === userId);
-        setNotes(userNotes);
-        setFilteredNotes(userNotes);
+        // Set filtered notes with the items array from the paginated response
+        setFilteredNotes(notesResult.items);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to fetch user data');
       } finally {
@@ -60,24 +59,38 @@ export default function UserNotesPage({ params }: UserNotesPageProps) {
     fetchUserAndNotes();
   }, [userId]);
   
-  // Filter notes based on search query
+  // Filter notes based on search query using the API
   useEffect(() => {
-    if (!searchQuery.trim()) {
-      setFilteredNotes(notes);
-    } else {
-      const query = searchQuery.toLowerCase();
-      const filtered = notes.filter(note => 
-        note.title.toLowerCase().includes(query) || 
-        (note.description && note.description.toLowerCase().includes(query))
-      );
-      setFilteredNotes(filtered);
-    }
-  }, [notes, searchQuery]);
+    const fetchFilteredNotes = async () => {
+      try {
+        if (isNaN(userId)) return;
+        
+        setIsLoading(true);
+        
+        // Pass the search query to the API endpoint
+        const notesResult = await NoteService.getNotesByUserId(userId, 0, 100, searchQuery);
+        
+        // Use the items array from the paginated response
+        setFilteredNotes(notesResult.items);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to search notes');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    // Use debounce technique to prevent too many API calls while typing
+    const debounceTimer = setTimeout(() => {
+      fetchFilteredNotes();
+    }, 300); // 300ms debounce
+    
+    return () => clearTimeout(debounceTimer);
+  }, [userId, searchQuery]);
   
   const handleDeleteNote = async (noteId: number) => {
     try {
       await NoteService.deleteNote(noteId);
-      setNotes(prevNotes => prevNotes.filter(note => note.id !== noteId));
+      setFilteredNotes(prevNotes => prevNotes.filter(note => note.id !== noteId));
       
       // Show success message
       const successMessage = document.createElement('div');

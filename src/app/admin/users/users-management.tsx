@@ -4,13 +4,14 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { AuthService } from '@/services/authService';
 import { AdminService } from '@/services/adminService';
-import { UserResponse, PaginatedUserResponse } from '@/services/apiClient';
+import { UserResponse } from '@/services/apiClient';
 import Navbar from '@/components/Navbar';
 
 export default function UsersManagement() {
   const router = useRouter();
   const [users, setUsers] = useState<UserResponse[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingDetails, setIsLoadingDetails] = useState(false);
   const [error, setError] = useState('');
   const [roleFilter, setRoleFilter] = useState<string | undefined>();
   const [statusFilter, setStatusFilter] = useState<boolean | undefined>();
@@ -45,7 +46,7 @@ export default function UsersManagement() {
     setError('');
     try {
       const response = await AdminService.getUsers(currentPage, pageSize, roleFilter, statusFilter);
-      setUsers(response.items);
+        setUsers(response.items);
       setTotalItems(response.meta.total);
       setTotalPages(response.meta.pages);
     } catch (err) {
@@ -56,15 +57,16 @@ export default function UsersManagement() {
   };
 
     const fetchUserDetails = async (userId: number) => {
-    setIsLoading(true);
-    setError('');
+    setIsLoadingDetails(true);
     try {
       const details = await AdminService.getUserDetails(userId);
       setSelectedUser(details);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch user details');
+      const errorMsg = err instanceof Error ? err.message : 'Failed to fetch user details';
+      console.error(errorMsg);
+      setError(errorMsg);
     } finally {
-      setIsLoading(false);
+      setIsLoadingDetails(false);
     }
   };  const handleRoleChange = async (userId: number, newRole: string) => {
     setIsUpdating(true);
@@ -206,7 +208,7 @@ export default function UsersManagement() {
         </div>
 
         {/* User List */}
-        {isLoading && !selectedUser ? (
+        {isLoading ? (
           <div className="flex justify-center py-12">
             <span className="loading loading-spinner loading-lg"></span>
           </div>
@@ -216,7 +218,7 @@ export default function UsersManagement() {
               <table className="table table-zebra w-full">
                 <thead>
                   <tr>
-                    <th>ID</th>
+                    <th>S.R</th>
                     <th>Name</th>
                     <th>Email</th>
                     <th>Role</th>
@@ -225,9 +227,9 @@ export default function UsersManagement() {
                   </tr>
                 </thead>
                 <tbody>
-                  {users.map(user => (
+                  {users.map((user, index) => (
                     <tr key={user.id} className={selectedUser?.id === user.id ? 'bg-base-300' : ''}>
-                      <td>{user.id}</td>
+                      <td>{index + 1}</td>
                       <td>{user.name}</td>
                       <td>{user.email}</td>
                       <td>
@@ -244,7 +246,12 @@ export default function UsersManagement() {
                         <div className="flex space-x-2">
                           <button 
                             className="btn btn-xs btn-info" 
-                            onClick={() => fetchUserDetails(user.id)}
+                            onClick={() => {
+                              // Only fetch if it's not the currently selected user
+                              if (!selectedUser || selectedUser.id !== user.id) {
+                                fetchUserDetails(user.id);
+                              }
+                            }}
                             aria-label="View user details"
                           >
                             Details
@@ -278,19 +285,27 @@ export default function UsersManagement() {
                   <div className="join shadow-sm">
                     <button 
                       className="join-item btn btn-sm btn-ghost" 
-                      onClick={() => setCurrentPage(1)}
+                      onClick={() => {
+                      if (currentPage !== 1) setCurrentPage(1);
+                      }}
                       disabled={currentPage === 1}
                       aria-label="First page"
                     >
-                      «
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" style={{ transform: 'scaleX(-1)' }}>
+                  <path stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" d="M15 5l7 7-7 7M9 5l7 7-7 7" />
+                </svg>
                     </button>
                     <button 
                       className="join-item btn btn-sm btn-ghost"
-                      onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                      onClick={() => {
+                      if (currentPage > 1) setCurrentPage(p => Math.max(1, p - 1));
+                      }}
                       disabled={currentPage === 1}
                       aria-label="Previous page"
                     >
-                      ‹
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24">
+                      <path stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+                      </svg>
                     </button>
                     
                     <div className="join-item bg-base-100 px-2 flex items-center">
@@ -306,29 +321,37 @@ export default function UsersManagement() {
                           </option>
                         ))}
                       </select>
-                      <span className="px-2">of {totalPages}</span>
+                      <span className="px-2 whitespace-nowrap">of {totalPages}</span>
                     </div>
                     
                     <button 
                       className="join-item btn btn-sm btn-ghost"
-                      onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                      onClick={() => {
+                      if (currentPage < totalPages) setCurrentPage(p => Math.min(totalPages, p + 1));
+                      }}
                       disabled={currentPage === totalPages}
                       aria-label="Next page"
                     >
-                      ›
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24">
+                      <path stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                      </svg>
                     </button>
                     <button 
                       className="join-item btn btn-sm btn-ghost"
-                      onClick={() => setCurrentPage(totalPages)}
+                      onClick={() => {
+                      if (currentPage !== totalPages) setCurrentPage(totalPages);
+                      }}
                       disabled={currentPage === totalPages}
                       aria-label="Last page"
                     >
-                      »
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24">
+                      <path stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" d="M15 5l7 7-7 7M9 5l7 7-7 7" />
+                      </svg>
                     </button>
                   </div>
                   
                   <div className="flex items-center gap-2 bg-base-100 rounded-lg px-3 py-1">
-                    <span className="text-sm">Items per page:</span>
+                    <span className="text-sm whitespace-nowrap">Items per page:</span>
                     <select 
                       className="select select-sm select-ghost focus:outline-none" 
                       value={pageSize}
@@ -353,7 +376,7 @@ export default function UsersManagement() {
               <div className="col-span-1 bg-base-200 p-6 rounded-lg">
                 <h2 className="text-xl font-semibold mb-4">User Details</h2>
                 
-                {isLoading ? (
+                {isLoadingDetails ? (
                   <div className="flex justify-center py-12">
                     <span className="loading loading-spinner loading-md"></span>
                   </div>

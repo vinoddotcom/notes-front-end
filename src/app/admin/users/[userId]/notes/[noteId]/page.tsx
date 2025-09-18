@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { NoteResponse, UserResponse, NoteUpdate } from '@/services/apiClient';
 import { NoteService } from '@/services/noteService';
@@ -10,16 +10,18 @@ import Navbar from '@/components/Navbar';
 import Link from 'next/link';
 
 interface NoteEditPageProps {
-  params: {
+  params: Promise<{
     userId: string;
     noteId: string;
-  };
+  }>;
 }
 
 export default function NoteEditPage({ params }: NoteEditPageProps) {
   const router = useRouter();
-  const userId = parseInt(params.userId, 10);
-  const noteId = parseInt(params.noteId, 10);
+  // Access params directly in client components
+  const resolvedParams = React.use(params) as { userId: string; noteId: string };
+  const userId = parseInt(resolvedParams.userId, 10);
+  const noteId = parseInt(resolvedParams.noteId, 10);
   
   const [user, setUser] = useState<UserResponse | null>(null);
   const [note, setNote] = useState<NoteResponse | null>(null);

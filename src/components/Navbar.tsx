@@ -51,40 +51,12 @@ export default function Navbar() {
   const themes = [
     // Light themes
     { id: 'light', name: 'Light', category: 'Light' },
-    { id: 'cupcake', name: 'Cupcake', category: 'Light' },
-    { id: 'bumblebee', name: 'Bumblebee', category: 'Light' },
-    { id: 'emerald', name: 'Emerald', category: 'Light' },
-    { id: 'corporate', name: 'Corporate', category: 'Light' },
-    { id: 'garden', name: 'Garden', category: 'Light' },
-    { id: 'aqua', name: 'Aqua', category: 'Light' },
-    { id: 'pastel', name: 'Pastel', category: 'Light' },
-    { id: 'fantasy', name: 'Fantasy', category: 'Light' },
-    { id: 'wireframe', name: 'Wireframe', category: 'Light' },
-    { id: 'cmyk', name: 'CMYK', category: 'Light' },
-    { id: 'autumn', name: 'Autumn', category: 'Light' },
-    { id: 'business', name: 'Business', category: 'Light' },
-    { id: 'acid', name: 'Acid', category: 'Light' },
-    { id: 'lemonade', name: 'Lemonade', category: 'Light' },
-    { id: 'winter', name: 'Winter', category: 'Light' },
+
     
     // Dark themes
     { id: 'dark', name: 'Dark', category: 'Dark' },
-    { id: 'synthwave', name: 'Synthwave', category: 'Dark' },
-    { id: 'retro', name: 'Retro', category: 'Dark' },
-    { id: 'cyberpunk', name: 'Cyberpunk', category: 'Dark' },
-    { id: 'valentine', name: 'Valentine', category: 'Dark' },
-    { id: 'halloween', name: 'Halloween', category: 'Dark' },
-    { id: 'forest', name: 'Forest', category: 'Dark' },
-    { id: 'lofi', name: 'Lo-Fi', category: 'Dark' },
-    { id: 'black', name: 'Black', category: 'Dark' },
-    { id: 'luxury', name: 'Luxury', category: 'Dark' },
-    { id: 'dracula', name: 'Dracula', category: 'Dark' },
-    { id: 'night', name: 'Night', category: 'Dark' },
-    { id: 'coffee', name: 'Coffee', category: 'Dark' },
-    { id: 'dim', name: 'Dim', category: 'Dark' },
-    { id: 'nord', name: 'Nord', category: 'Dark' },
-    { id: 'sunset', name: 'Sunset', category: 'Dark' }
-  ];
+
+  ]
 
   return (
     <div className="navbar bg-base-200 shadow">
@@ -130,7 +102,6 @@ export default function Navbar() {
             </svg>
           </div>
           <ul tabIndex={0} className="dropdown-content menu p-3 shadow bg-base-100 rounded-box w-64 mt-4 z-[1] max-h-96 overflow-y-auto">
-            <li className="menu-title">Light Themes</li>
             {themes.filter(t => t.category === 'Light').map(t => (
               <li key={t.id}>
                 <button 
@@ -144,7 +115,6 @@ export default function Navbar() {
                 </button>
               </li>
             ))}
-            <li className="menu-title mt-2">Dark Themes</li>
             {themes.filter(t => t.category === 'Dark').map(t => (
               <li key={t.id}>
                 <button 
