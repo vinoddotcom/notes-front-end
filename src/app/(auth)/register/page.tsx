@@ -1,14 +1,16 @@
 'use client';
 
+export const runtime = 'edge';
+
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-// Removed useRouter since we're using window.location.href for redirection
+import { useRouter } from 'next/navigation';
 import { AuthService } from '@/services/authService';
 import { UserCreate } from '@/services/apiClient';
 import Navbar from '@/components/Navbar';
 
 export default function RegisterPage() {
-  // Removed router initialization since we're not using it
+  const router = useRouter();
   const [formData, setFormData] = useState<UserCreate>({
     email: '',
     name: '',
@@ -70,8 +72,8 @@ export default function RegisterPage() {
       // Store success message in session storage for display after redirect
       sessionStorage.setItem('registrationSuccess', 'Registration successful! Please log in with your credentials.');
       
-      // Force a hard navigation to the login page
-      window.location.href = '/login';
+      // Use Next.js router for navigation instead of hard reload
+      router.push('/login');
     } catch (err) {
       console.error('Register: Registration error:', err);
       setError(err instanceof Error ? err.message : 'Registration failed. Please try again with a different email.');

@@ -64,10 +64,22 @@ class ApiClient {
       (response) => response,
       (error) => {
         if (error.response?.status === 401) {
-          // Handle unauthorized access - clear token and redirect
+          // Handle unauthorized access - clear token
           localStorage.removeItem('token');
           localStorage.removeItem('user');
-          window.location.href = '/login';
+          
+          // Only redirect to login if not already on auth pages
+          const currentPath = window.location.pathname;
+          const isAuthPage = currentPath.includes('/login') || currentPath.includes('/register');
+          
+          if (!isAuthPage) {
+            // Only redirect if not already on an auth page
+            // We need to use a soft redirect that doesn't reload the page
+            // but this requires routing context from a component
+            // Using location.replace is slightly better than location.href
+            // as it doesn't add to browser history
+            window.location.replace('/login');
+          }
         }
         return Promise.reject(error);
       }
