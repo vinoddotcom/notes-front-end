@@ -7,11 +7,33 @@
   --font-mono: var(--font-geist-mono);
 }
 
+/* Explicit DaisyUI theme variables for light theme (fallback) */
+:root:not([data-theme]) {
+  --p: 259 94% 51%;
+  --pc: 0 0% 100%;
+  --s: 314 100% 47%;
+  --sc: 0 0% 100%;
+  --a: 174 60% 51%;
+  --ac: 0 0% 100%;
+  --n: 219 14% 28%;
+  --nc: 0 0% 100%;
+  --b1: 0 0% 100%;
+  --b2: 0 0% 95%;
+  --b3: 0 0% 90%;
+  --bc: 215 28% 17%;
+}
+
+/* Force theme change effect */
+html[data-theme] {
+  transition: background-color 0.3s ease;
+}
+
 body {
   background-color: hsl(var(--b1));
   color: hsl(var(--bc));
   font-family: var(--font-sans, Arial, Helvetica, sans-serif);
   min-height: 100vh;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 /* Custom form styling */

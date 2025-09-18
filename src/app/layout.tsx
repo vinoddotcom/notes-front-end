@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import "./theme-fixer.css"; // Import the theme fixer
 import { Providers } from "./providers";
 
 const geistSans = Geist({
@@ -24,15 +25,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" data-theme="light" suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning>
       <head />
       <body
         className={`${geistSans.variable} ${geistMono.variable} min-h-screen antialiased`}
       >
         <Providers>{children}</Providers>
-        
-        {/* We're now using the proper plugin configuration for DaisyUI, 
-            so we don't need the CDN fallback anymore */}
       </body>
     </html>
   );
