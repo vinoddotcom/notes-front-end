@@ -6,7 +6,7 @@ const nextConfig = {
   outputFileTracingRoot: path.join(__dirname), // eslint-disable-line
   
   // Additional configuration
-  reactStrictMode: true,
+  reactStrictMode: true
 };
 
 module.exports = nextConfig;
