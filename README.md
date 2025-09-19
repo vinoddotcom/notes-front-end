@@ -2,6 +2,12 @@
 
 A Next.js application for managing personal notes with authentication, role-based access control, and a modern UI using DaisyUI and Tailwind CSS.
 
+## Live Demo
+
+**Preview Link:** [https://notes.vinod.digital/](https://notes.vinod.digital/)
+
+The application is hosted on Cloudflare Pages for optimal performance and reliability.
+
 ## Features
 
 - **User Authentication**
@@ -23,10 +29,14 @@ A Next.js application for managing personal notes with authentication, role-base
 
 ## Technical Stack
 
-- **Frontend**: Next.js with TypeScript
-- **CSS Framework**: Tailwind CSS with DaisyUI
-- **API Integration**: Axios with auto-generated TypeScript interfaces from OpenAPI schema
+- **Frontend**: Next.js 15 with TypeScript and App Router
+- **CSS Framework**: Tailwind CSS with DaisyUI for theming
+- **API Integration**: 
+  - Axios for API requests
+  - Auto-generated TypeScript interfaces from OpenAPI/Swagger schema
+  - Integration with backend via RESTful endpoints
 - **Authentication**: JWT token-based authentication
+- **Deployment**: Cloudflare Pages with Edge runtime
 
 ## Getting Started
 
@@ -43,11 +53,13 @@ A Next.js application for managing personal notes with authentication, role-base
 npm install
 ```
 
-3. Generate API types from the OpenAPI specification:
+3. Generate API types from the OpenAPI/Swagger specification:
 
 ```bash
 npm run generate-api
 ```
+
+   This script fetches the OpenAPI schema and generates TypeScript types in `/src/types/generated/api.ts`
 
 4. Run the development server:
 
@@ -59,7 +71,12 @@ npm run dev
 
 ## API Documentation
 
-The application consumes an API from `https://api-notes.vinod.digital/` with the following endpoints:
+The application consumes an API from `https://api-notes.vinod.digital/` with OpenAPI/Swagger integration:
+
+- **Swagger UI:** [https://api-notes.vinod.digital/docs](https://api-notes.vinod.digital/docs)
+- **OpenAPI JSON:** [https://api-notes.vinod.digital/openapi.json](https://api-notes.vinod.digital/openapi.json)
+
+### Key API Endpoints:
 
 - Authentication:
   - POST `/api/v1/auth/register` - Register a new user
@@ -75,25 +92,51 @@ The application consumes an API from `https://api-notes.vinod.digital/` with the
 
 ## Project Structure
 
-- `/src/app`: Next.js application routes
+- `/src/app`: Next.js application routes using App Router
 - `/src/components`: Reusable UI components
-- `/src/services`: API service layer
+- `/src/services`: API service layer with Axios integration
+- `/src/context`: React context providers (e.g., AuthContext)
 - `/src/types`: TypeScript type definitions
-- `/src/types/generated`: Auto-generated types from OpenAPI schema
+- `/src/types/generated`: Auto-generated types from OpenAPI/Swagger schema
+- `/scripts`: Utility scripts including the OpenAPI type generator
 
 ## Theme Support
 
-The application supports multiple themes from DaisyUI, which can be changed via the theme switcher in the navigation bar. Available themes include:
+The application supports multiple themes from DaisyUI, which can be changed via the theme switcher in the navigation bar.
 
-- Light
-- Dark
-- Cupcake
-- Bumblebee
-- Emerald
-- Corporate
-- Synthwave
-- Retro
-- Cyberpunk
-- Night
+Key theme features:
+- Light/Dark mode support
+- Theme persistence using browser's localStorage
+- DaisyUI integration for consistent styling
 
-User preferences for themes are stored in the browser's localStorage.
+## OpenAPI/Swagger Integration
+
+This project uses OpenAPI/Swagger for type-safe API integration:
+
+1. The backend exposes an OpenAPI schema at `https://api-notes.vinod.digital/openapi.json`
+2. The `scripts/generate-api-types.ts` script fetches this schema and generates TypeScript types
+3. The generated types are used throughout the application to ensure type safety when working with API data
+
+### How It Works:
+
+- The `openapi-typescript` package converts the Swagger schema to TypeScript definitions
+- The generated types provide full IntelliSense support for API requests and responses
+- API services in `/src/services` use these types to ensure type-safe API calls
+- The script attempts to fetch from the remote API, with a fallback to a local OpenAPI schema if the API is unavailable
+
+## Deployment
+
+The application is deployed on Cloudflare Pages:
+
+- **Production URL:** [https://notes.vinod.digital/](https://notes.vinod.digital/)
+- **Edge Runtime:** Used for optimal performance and global distribution
+- **CI/CD:** Automatic deployments from the main branch
+
+To deploy your own version:
+
+1. Build the application:
+```bash
+npm run build
+```
+
+2. The built application can be deployed to any static hosting provider that supports Next.js, such as Cloudflare Pages, Vercel, or Netlify.
