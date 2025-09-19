@@ -2,12 +2,11 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { AuthService } from '@/services/authService';
+import { useAuth } from '@/context/AuthContext';
 import { LoginRequest } from '@/services/apiClient';
 
 export default function LoginForm() {
-  const router = useRouter();
+  const { login, isLoading } = useAuth();
   const [formData, setFormData] = useState<LoginRequest>({
     username: '',
     password: '',
@@ -18,7 +17,6 @@ export default function LoginForm() {
   });
   const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
   
   // Check for registration success message in sessionStorage
   useEffect(() => {
@@ -55,45 +53,25 @@ export default function LoginForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Don't clear error immediately - let it persist until we get a response
-    setIsLoading(true);
 
     // Basic validation
     if (!formData.username || !formData.password) {
       setError('Email and password are required');
-      setIsLoading(false);
       return;
     }
 
     try {
-      console.log('Login: Attempting login with:', formData);
+      console.log('Login: Attempting login with username:', formData.username);
       
-      const result = await AuthService.login(formData);
-      console.log('Login: Login successful, result:', result);
+      // Use the login function from auth context instead of directly using AuthService
+      await login(formData.username, formData.password);
       
-      // Token should already be saved by AuthService
-      
-      try {
-        // Fetch user information
-        console.log('Login: Fetching user data...');
-        const userData = await AuthService.getCurrentUser();
-        console.log('Login: User data fetched:', userData);
-        
-        localStorage.setItem('user', JSON.stringify(userData));
-        
-        // Redirect to dashboard
-        console.log('Login: Redirecting to dashboard...');
-        router.push('/dashboard');
-      } catch (userError) {
-        console.error('Login: Error fetching user data:', userError);
-        setError('Login successful, but could not fetch user data. Please try again.');
-        localStorage.removeItem('token');
-      }
+      // The auth context will handle redirecting to the dashboard
+      console.log('Login successful, redirecting to dashboard...');
+      // router.push is now handled by the AuthContext
     } catch (err) {
       console.error('Login: Login error:', err);
       setError(err instanceof Error ? err.message : 'Login failed. Please check your credentials and try again.');
-    } finally {
-      setIsLoading(false);
     }
   };
 

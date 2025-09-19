@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { AuthService } from '@/services/authService';
 import { AdminService } from '@/services/adminService';
 import { UserResponse } from '@/services/apiClient';
 import Navbar from '@/components/Navbar';
@@ -25,18 +24,6 @@ export default function UsersManagement() {
 
   // Check if user is authenticated and has admin role
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      router.push('/login');
-      return;
-    }
-
-    const userData = AuthService.getCachedUser();
-    if (!userData || userData.role !== 'admin') {
-      router.push('/dashboard');
-      return;
-    }
-    
     fetchUsers();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [router, roleFilter, statusFilter, currentPage, pageSize]);

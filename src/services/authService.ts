@@ -3,21 +3,21 @@ import axios, { AxiosError } from 'axios';
 
 // Auth token management class to centralize token storage logic
 class TokenManager {
-  // Save token to both cookie and localStorage
+  // Save token to both cookie and sessionStorage
   static saveToken(token: string): void {
     if (typeof window === 'undefined') return;
     
-    // Save to localStorage for API requests
+    // Save to sessionStorage for API requests
     try {
-      localStorage.setItem('token', token);
-      console.log('Token saved to localStorage');
+      sessionStorage.setItem('token', token);
+      console.log('Token saved to sessionStorage');
     } catch (error) {
-      console.error('Error saving to localStorage:', error);
+      console.error('Error saving to sessionStorage:', error);
     }
     
     // Save to cookie for middleware/SSR
     try {
-      this.setCookie('token', token, 7);
+      this.setCookie('token', token, 1); // Short expiry time for security
       console.log('Token saved to cookie');
     } catch (error) {
       console.error('Error saving to cookie:', error);
@@ -28,17 +28,17 @@ class TokenManager {
   static clearToken(): void {
     if (typeof window === 'undefined') return;
     
-    // Clear from localStorage
+    // Clear from sessionStorage
     try {
-      localStorage.removeItem('token');
-      console.log('Token cleared from localStorage');
+      sessionStorage.removeItem('token');
+      console.log('Token cleared from sessionStorage');
     } catch (error) {
-      console.error('Error clearing localStorage:', error);
+      console.error('Error clearing sessionStorage:', error);
     }
     
     // Clear from cookie
     try {
-      document.cookie = "token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+      document.cookie = "token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; secure; samesite=strict";
       console.log('Token cleared from cookie');
     } catch (error) {
       console.error('Error clearing cookie:', error);
@@ -46,12 +46,18 @@ class TokenManager {
   }
   
   // Helper to set cookie with expiration
-  static setCookie(name: string, value: string, days: number = 7): void {
+  static setCookie(name: string, value: string, days: number = 1): void {
     if (typeof document === 'undefined') return;
     
     const expiryDate = new Date();
     expiryDate.setDate(expiryDate.getDate() + days);
-    document.cookie = `${name}=${value};expires=${expiryDate.toUTCString()};path=/`;
+    
+    // Use secure cookies in production
+    const isSecure = window.location.protocol === 'https:';
+    const secureFlag = isSecure ? ';secure' : '';
+    
+    document.cookie = `${name}=${value};expires=${expiryDate.toUTCString()};path=/;samesite=strict${secureFlag}`;
+    console.log(`Cookie ${name} set with expiry: ${days} days`);
   }
   
   // Check if user is authenticated
@@ -59,19 +65,39 @@ class TokenManager {
     if (typeof window === 'undefined') return false;
     
     let tokenExists = false;
+    let tokenValue = null;
     
-    // Check localStorage
+    // Check sessionStorage
     try {
-      tokenExists = !!localStorage.getItem('token');
+      tokenValue = sessionStorage.getItem('token');
+      tokenExists = !!tokenValue;
+      if (tokenExists) {
+        console.log('Token found in sessionStorage');
+      }
     } catch (error) {
-      console.error('Error reading localStorage:', error);
+      console.error('Error reading sessionStorage:', error);
     }
     
-    // If not in localStorage, check cookies
+    // If not in sessionStorage, check cookies
     if (!tokenExists && typeof document !== 'undefined') {
-      tokenExists = document.cookie.split(';').some(c => 
-        c.trim().startsWith('token=')
-      );
+      const cookieToken = document.cookie
+        .split(';')
+        .map(c => c.trim())
+        .find(c => c.startsWith('token='));
+      
+      if (cookieToken) {
+        tokenValue = cookieToken.substring(6); // 'token='.length
+        tokenExists = true;
+        console.log('Token found in cookies');
+        
+        // Sync to sessionStorage if found in cookies
+        try {
+          sessionStorage.setItem('token', tokenValue);
+          console.log('Token synced from cookies to sessionStorage');
+        } catch (error) {
+          console.error('Error syncing token to sessionStorage:', error);
+        }
+      }
     }
     
     return tokenExists;
@@ -182,7 +208,7 @@ export const AuthService = {
   async getCurrentUser(): Promise<UserResponse> {
     try {
       // First check if we have cached user data
-      const cachedUserData = localStorage.getItem('user');
+      const cachedUserData = sessionStorage.getItem('user');
       
       if (cachedUserData) {
         const userData = JSON.parse(cachedUserData) as UserResponse;
@@ -195,7 +221,7 @@ export const AuthService = {
       const userData = await apiClient.getCurrentUser();
       
       // Cache the user data
-      localStorage.setItem('user', JSON.stringify(userData));
+      sessionStorage.setItem('user', JSON.stringify(userData));
       
       return userData;
     } catch (error) {
@@ -216,7 +242,7 @@ export const AuthService = {
   // Get cached user data (without making an API call)
   getCachedUser(): UserResponse | null {
     try {
-      const cachedUserData = localStorage.getItem('user');
+      const cachedUserData = sessionStorage.getItem('user');
       if (cachedUserData) {
         return JSON.parse(cachedUserData) as UserResponse;
       }
@@ -232,21 +258,16 @@ export const AuthService = {
     return TokenManager.isAuthenticated();
   },
 
-  // Get cached user data (without API call)
-  // getCachedUser(): UserResponse | null {
-  //   const userData = localStorage.getItem('user');
-  //   return userData ? JSON.parse(userData) : null;
-  // },
 
   // Logout user (client-side only)
   logout(): void {
-    // Clear token from both localStorage and cookies
+    // Clear token from both sessionStorage and cookies
     TokenManager.clearToken();
     
-    // Also clear user data from localStorage
+    // Also clear user data from sessionStorage
     if (typeof window !== 'undefined') {
       try {
-        localStorage.removeItem('user');
+        sessionStorage.removeItem('user');
       } catch (error) {
         console.error('Error clearing user data:', error);
       }

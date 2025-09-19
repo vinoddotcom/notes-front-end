@@ -24,7 +24,7 @@ export default function HomePage() {
     <div className="min-h-screen flex items-center justify-center">
       <div className="text-center">
         <span className="loading loading-spinner loading-lg"></span>
-        <p className="mt-4">Redirecting to app...</p>
+        <p className="mt-4">Authenticating...</p>
       </div>
     </div>
   );

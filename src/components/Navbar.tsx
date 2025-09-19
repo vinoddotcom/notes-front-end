@@ -1,15 +1,11 @@
 'use client';
 
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { UserResponse } from '@/services/apiClient';
-import { AuthService } from '@/services/authService';
+import { useAuth } from '@/context/AuthContext';
 
 export default function Navbar() {
-  const router = useRouter();
-  const [user, setUser] = useState<UserResponse | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { user, isLoading: loading, logout, refreshUserData, lastRefresh } = useAuth();
   const [error, setError] = useState('');
   const [theme, setTheme] = useState<string>('light');
 
@@ -18,28 +14,30 @@ export default function Navbar() {
     const savedTheme = localStorage.getItem('theme') || 'light';
     setTheme(savedTheme);
     document.documentElement.setAttribute('data-theme', savedTheme);
-
-    const fetchUser = async () => {
+    
+    // Make sure user data is refreshed when Navbar mounts - but only once
+    // Using an IIFE to handle the async operation without creating dependencies
+    (async () => {
       try {
-        const token = localStorage.getItem('token');
-        if (token) {
-          const userData = await AuthService.getCurrentUser();
-          setUser(userData);
+        // Only refresh if we're missing user data and haven't refreshed recently
+        const now = Date.now();
+        const shouldRefresh = !user && (!lastRefresh || now - lastRefresh > 5000);
+        
+        if (shouldRefresh) {
+          console.log("Navbar: Refreshing user data");
+          await refreshUserData();
         }
       } catch (err) {
-        console.error('Failed to fetch user data', err);
+        console.error('Failed to refresh user data', err);
         setError('Failed to fetch user data');
-      } finally {
-        setLoading(false);
       }
-    };
-
-    fetchUser();
+    })();
+  // Deliberately omitting refreshUserData from dependencies to prevent loops
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleLogout = () => {
-    AuthService.logout();
-    router.push('/login');
+    logout();
   };
 
   const handleThemeChange = (newTheme: string) => {

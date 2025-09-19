@@ -28,10 +28,27 @@ class ApiClient {
     for (const cookie of cookies) {
       const [name, value] = cookie.trim().split('=');
       if (name === 'token') {
+        console.log('API Client: Found token in cookies');
         return value;
       }
     }
     return null;
+  }
+  
+  // Helper method to get token from sessionStorage
+  private getTokenFromSessionStorage(): string | null {
+    if (typeof window === 'undefined') return null;
+    
+    try {
+      const token = sessionStorage.getItem('token');
+      if (token) {
+        console.log('API Client: Found token in sessionStorage');
+      }
+      return token;
+    } catch (error) {
+      console.error('API Client: Error reading from sessionStorage:', error);
+      return null;
+    }
   }
 
   constructor() {
@@ -43,17 +60,26 @@ class ApiClient {
     this.axiosInstance.interceptors.request.use((config) => {
       // Only run in browser environment
       if (typeof window !== 'undefined') {
-        // Try to get token from cookies first, then fall back to localStorage
+        // Try to get token from sessionStorage first, then fall back to cookies
+        const sessionToken = this.getTokenFromSessionStorage();
         const cookieToken = this.getTokenFromCookie();
-        const localToken = localStorage.getItem('token');
-        const token = cookieToken || localToken;
-        
-        console.log('API Request - Token available in cookies:', !!cookieToken);
-        console.log('API Request - Token available in localStorage:', !!localToken);
+        const token = sessionToken || cookieToken;
         
         if (token) {
           config.headers.Authorization = `Bearer ${token}`;
           console.log('API Request - Added token to headers');
+          
+          // If token was found in cookies but not in sessionStorage, store it there
+          if (cookieToken && !sessionToken) {
+            try {
+              sessionStorage.setItem('token', cookieToken);
+              console.log('API Request - Synchronized token from cookie to sessionStorage');
+            } catch (error) {
+              console.error('API Request - Error saving token to sessionStorage:', error);
+            }
+          }
+        } else {
+          console.log('API Request - No token found, request will be unauthenticated');
         }
       }
       return config;
@@ -64,15 +90,27 @@ class ApiClient {
       (response) => response,
       (error) => {
         if (error.response?.status === 401) {
+          console.log('API Client: Received 401 Unauthorized response');
+          
           // Handle unauthorized access - clear token
-          localStorage.removeItem('token');
-          localStorage.removeItem('user');
+          try {
+            sessionStorage.removeItem('token');
+            sessionStorage.removeItem('user');
+            console.log('API Client: Cleared token and user from sessionStorage');
+            
+            // Also clear from cookies
+            document.cookie = "token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+            console.log('API Client: Cleared token from cookies');
+          } catch (e) {
+            console.error('API Client: Error clearing auth data:', e);
+          }
           
           // Only redirect to login if not already on auth pages
           const currentPath = window.location.pathname;
           const isAuthPage = currentPath.includes('/login') || currentPath.includes('/register');
           
           if (!isAuthPage) {
+            console.log('API Client: Redirecting to login page');
             // Only redirect if not already on an auth page
             // We need to use a soft redirect that doesn't reload the page
             // but this requires routing context from a component

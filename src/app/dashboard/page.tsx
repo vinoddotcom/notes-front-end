@@ -6,13 +6,14 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { NoteCreate, NoteResponse, NoteUpdate } from '@/services/apiClient';
 import { NoteService } from '@/services/noteService';
-import { AuthService } from '@/services/authService';
+import { useAuth } from '@/context/AuthContext';
 import Navbar from '@/components/Navbar';
 import NoteCard from '@/components/NoteCard';
 import NoteForm from '@/components/NoteForm';
 
 export default function DashboardPage() {
   const router = useRouter();
+  const { user, isAuthenticated, isLoading: isAuthLoading, refreshUserData, lastRefresh } = useAuth();
   const [notes, setNotes] = useState<NoteResponse[]>([]);
   const [filteredNotes, setFilteredNotes] = useState<NoteResponse[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
@@ -21,23 +22,37 @@ export default function DashboardPage() {
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [editingNote, setEditingNote] = useState<NoteResponse | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [userRole, setUserRole] = useState<string>('user');
+  const userRole = user?.role || 'user';
 
-  // Check if user is authenticated
+  // Load notes when authentication is complete
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      router.push('/login');
-      return;
+    if (!isAuthLoading) {
+      if (!isAuthenticated) {
+        router.push('/login');
+        return;
+      }
+      
+      // Check if we need to refresh user data
+      const now = Date.now();
+      const needsRefresh = (!user || !user.role) && (!lastRefresh || now - lastRefresh > 5000);
+      
+      if (needsRefresh) {
+        console.log("Dashboard: Refreshing user data");
+        refreshUserData()
+          .then(() => fetchNotes())
+          .catch((error: Error) => {
+            console.error("Failed to refresh user data:", error);
+            setError("Failed to load user data. Please try refreshing the page.");
+          });
+      } else {
+        // Otherwise, just fetch notes
+        console.log("Dashboard: User data already available, just fetching notes");
+        fetchNotes();
+      }
     }
-
-    const userData = AuthService.getCachedUser();
-    if (userData) {
-      setUserRole(userData.role);
-    }
-    
-    fetchNotes();
-  }, [router]);
+  // Deliberately excluding refreshUserData from dependencies to prevent loops
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAuthenticated, isAuthLoading, router, user]);
   
   // Filter notes based on search query
   useEffect(() => {

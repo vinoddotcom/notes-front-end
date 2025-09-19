@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { AuthProvider } from '@/context/AuthContext';
 
 // List of all available themes from daisyUI
 const VALID_THEMES = [
@@ -58,5 +59,5 @@ export function Providers({ children }: { children: React.ReactNode }) {
     return () => mediaQuery.removeEventListener('change', handleChange);
   }, [mounted]);
 
-  return <>{children}</>;
+  return <AuthProvider>{children}</AuthProvider>;
 }

@@ -1,8 +1,8 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
-import { AuthService } from '@/services/authService';
+import { useEffect } from 'react';
+import { useAuth } from '@/context/AuthContext';
 
 export default function AuthGuard({ 
   children 
@@ -10,33 +10,17 @@ export default function AuthGuard({
   children: React.ReactNode 
 }) {
   const router = useRouter();
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
-
+  const { isAuthenticated, isLoading } = useAuth();
+  
   useEffect(() => {
-    // Check if the user is logged in
-    const checkAuth = async () => {
-      try {
-        if (!AuthService.isAuthenticated()) {
-          router.push('/login');
-          return;
-        }
-
-        // Verify the token is valid by getting current user
-        await AuthService.getCurrentUser();
-        setIsAuthenticated(true);
-      } catch (error) {
-        console.error('Auth check failed:', error);
-        // Token is invalid
-        AuthService.logout();
-        router.push('/login');
-      }
-    };
-
-    checkAuth();
-  }, [router]);
+    // Redirect to login if not authenticated and not currently loading
+    if (!isLoading && !isAuthenticated) {
+      router.push('/login');
+    }
+  }, [isAuthenticated, isLoading, router]);
 
   // Show loading state while checking authentication
-  if (isAuthenticated === null) {
+  if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
@@ -48,5 +32,5 @@ export default function AuthGuard({
   }
 
   // Return the children if authentication check passes
-  return <>{children}</>;
+  return isAuthenticated ? <>{children}</> : null;
 }
